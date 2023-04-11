@@ -10,6 +10,9 @@ client.notify("Injecting...")
 
 
 
+
+--flick 1, flick 2, flick 3
+
 --login system:
 
 local val=60
@@ -25,15 +28,17 @@ local prev_angle=0
 local yawanglenumb=0
 local lastflick=0
 local modangles=0
-local ticknumb=0
+local ticknumb=32
+local ticknumb2=16
+local ticknumb3=8
+
+
+--Main Menu shit
 
 local tabselect = ui.add_combo_box("Tab", "tabselect",{"Main", "AntiAim", "Misc/Visuals"}, 0)
 
-
---Main menu stuff
-
 local cumgambitcheckbox = ui.add_check_box(">>> [Cumgambit]", "cumgambitcheckbox", true)
-local version = ui.add_check_box(">>> [Version 1.1]", "version", true)
+local version = ui.add_check_box(">>> [Version 1.2]", "version", true)
 local changelog = ui.add_check_box(">>> [Change log]", "changelog", true)
 local discord = ui.add_check_box(">>> [Discord (to be announced)]", "discord", false)
 
@@ -41,27 +46,31 @@ local discord = ui.add_check_box(">>> [Discord (to be announced)]", "discord", f
 
 --aa stuff (to be cleaned up)
 local raamaster = ui.add_check_box("Rising sun AA", "raamaster", false)
-local antibrute = ui.add_check_box("Anti bruteforce AA", "antibrute", false)
+local antibrute = ui.add_check_box("180 treehouse AA", "antibrute", false)
 local antiprevangle = ui.add_check_box("Anti previous angle", "antiprevangle", false)
-local apat = ui.add_slider_int("Anti Previous angle threshold", "apat",0,25,5)
+local apat = ui.add_slider_int("Anti Previous angle threshold", "apat",0,180,25)
 local left_side = ui.add_key_bind("Left", "left_side", 0, 1)
 local right_side = ui.add_key_bind("Right", "right_side", 0, 1)
 
 
 local chockonsafe = ui.add_check_box("Choke lag on safe angle", "chockonsafe", false)
 
+local randc = ui.add_check_box("Random Choke", "randc", false)
 
 
 --choke on safe safe side
 local consss = ui.add_slider_int("Safe side choke value", "consss", 0,16,16)
 --choke on safe unsafe side
 local consus = ui.add_slider_int("Unsafe side choke value", "consus", 0,16,4)
-local randc = ui.add_check_box("Random Choke", "randc", false)
+
 
 --anti previous angle threshold
 
 
-local toflick = ui.add_check_box("Flick on tick", "toflick", false)
+local toflick = ui.add_check_box("Flick 1", "toflick", false)
+local toflick2 = ui.add_check_box("Flick 2", "toflick2", false)
+local toflick3 = ui.add_check_box("Flick 3", "toflick3", false)
+
 local upflick = ui.add_check_box("Up flick on tick", "upflick", false)
 local randtick = ui.add_check_box("Flick on random tick", "randtick", false)
 
@@ -114,6 +123,8 @@ function tab_selection_function()
         left_side:set_visible(false)
         right_side:set_visible(false)
         toflick:set_visible(false)
+        toflick2:set_visible(false)
+        toflick3:set_visible(false)
         upflick:set_visible(false)
         randtick:set_visible(false)
         flicktick:set_visible(false)
@@ -129,6 +140,8 @@ function tab_selection_function()
         left_side:set_visible(true)
         right_side:set_visible(true)
         toflick:set_visible(true)
+        toflick2:set_visible(true)
+        toflick3:set_visible(true)
         upflick:set_visible(true)
         randtick:set_visible(true)
         flicktick:set_visible(true)
@@ -197,13 +210,20 @@ client.register_callback("create_move", function(cmd)
                 else
                     val=80
                 end
-                if toflick:get_value() then
-                    if not(randtick:get_value()) then
-                        ticknumb=flicktick:get_value()
-                    end
-                        
 
-                    if (64-(globalvars.get_tick_count()%64))/ flicktick:get_value() == 1 then
+
+                -- Flick shit... 
+                -- basically rinse and repeat 3 times for each flick request
+
+                if toflick:get_value() then 
+                    if (64-(globalvars.get_tick_count()%64))/ ticknumb == 1 then
+                        if randtick:get_value() then
+                            local ticknumb=math.random(1,64)
+                            print(ticknumb)
+                        else 
+                            local ticknumb=flicktick:get_value()
+                        end
+
                         flick=-180+math.random(-30,30)
                         ticknumb=math.random(0,64)
                         --print("tick: "..tostring((64-(globalvars.get_tick_count()%64))))
@@ -220,7 +240,65 @@ client.register_callback("create_move", function(cmd)
                     end
                 end
 
+                if toflick2:get_value() then                        
+
+                    if (64-(globalvars.get_tick_count()%64))/ ticknumb2 == 1 then
+
+                        if (randtick:get_value()) then
+                            local ticknumb2=math.random(1,64)
+                        else 
+                            local ticknumb2=flicktick:get_value()
+                        end
+
+                        flick=-180+math.random(-30,30)
+                        ticknumb=math.random(0,64)
+                        --print("tick: "..tostring((64-(globalvars.get_tick_count()%64))))
+                        --print("flicking: "..tostring(flick))
+                        if upflick:get_value() then
+                            ui.get_combo_box("antihit_antiaim_pitch"):set_value(3)
+                        else
+                            ui.get_combo_box("antihit_antiaim_pitch"):set_value(1)
+                        end
+
+                    else
+                        --ui.get_combo_box("antihit_antiaim_pitch"):set_value(1)
+                        flick=0
+                    end
+                end
+                
+                if toflick3:get_value() then
+
+                        
+
+                    if (64-(globalvars.get_tick_count()%64))/ ticknumb3 == 1 then
+                        if (randtick:get_value()) then
+                            local ticknumb3=math.random(1,64)
+                        else 
+                            local ticknumb3=flicktick:get_value()
+
+                        end
+                        flick=-180+math.random(-30,30)
+                        ticknumb=math.random(0,64)
+                        --print("tick: "..tostring((64-(globalvars.get_tick_count()%64))))
+                        --print("flicking: "..tostring(flick))
+                        if upflick:get_value() then
+                            ui.get_combo_box("antihit_antiaim_pitch"):set_value(3)
+                        else
+                            ui.get_combo_box("antihit_antiaim_pitch"):set_value(1)
+                        end
+
+                    else
+                        --ui.get_combo_box("antihit_antiaim_pitch"):set_value(1)
+                        flick=0
+                    end
+                end
+
+
+
+
+
                 if antibrute:get_value() then
+                    -- og numbers: -90,90
                     antibruteangle=math.random(-90,90)
                 else
                     antibruteangle=0
@@ -229,7 +307,8 @@ client.register_callback("create_move", function(cmd)
                 yawanglenumb=(cmd.viewangles.yaw + val+side +antibruteangle)+flick
 
                 if antiprevangle:get_value() and yawanglenumb<prev_angle+(apat:get_value()) and yawanglenumb>prev_angle-(apat:get_value()) then
-                    yawanglenumb=yawanglenumb+math.random(-15,15)
+                    -- og numbers: -15,15
+                    yawanglenumb=yawanglenumb+math.random(-30,30)
                 else
                     prev_angle=yawanglenumb
                 end
@@ -325,6 +404,7 @@ local function on_paint()
                 end
 
             end
+
             yawtext="Yaw: "..tostring(math.floor(yawanglenumb))
             yawtextsize=caltextsize(yawtext)
             if side==0 and yawanglenumb<0 then
@@ -378,7 +458,7 @@ local function watermarkfunc()
         local tick_count = (globalvars.get_tick_count())
         local max_clients = globalvars.get_max_clients()
 
-        watermarktext = ("Cumgambit v1.1 | "..username.." | "..seconds..":"..minutes..":"..hours.." | Ping: "..ping.." | "..tick_count.." | "..max_clients)
+        watermarktext = ("Cumgambit v1.2 | "..username.." | "..seconds..":"..minutes..":"..hours.." | Ping: "..ping.." | "..tick_count.." | "..max_clients)
         wmx = (caltextsize(watermarktext).x+size)
         wmy = (caltextsize(watermarktext).y+size)
 
