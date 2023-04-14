@@ -35,7 +35,7 @@ local ticknumb3=8
 
 --Main Menu shit
 
-local tabselect = ui.add_combo_box("Tab", "tabselect",{"Main", "AntiAim", "Misc/Visuals"}, 0)
+local tabselect = ui.add_combo_box("[Cumgambit]>>>Tab", "tabselect",{"Main", "AntiAim", "Misc/Visuals", "Advanced settings"}, 0)
 
 local cumgambitcheckbox = ui.add_check_box(">>> [Cumgambit]", "cumgambitcheckbox", true)
 local version = ui.add_check_box(">>> [Version 1.2]", "version", true)
@@ -46,7 +46,8 @@ local discord = ui.add_check_box(">>> [Discord (to be announced)]", "discord", f
 
 --aa stuff (to be cleaned up)
 local raamaster = ui.add_check_box("Rising sun AA", "raamaster", false)
-local antibrute = ui.add_check_box("180 treehouse AA", "antibrute", false)
+local antibrute = ui.add_check_box("Antibrute random", "antibrute", false)
+local _180treehouse = ui.add_check_box("180树屋", "_180treehouse", false)
 local antiprevangle = ui.add_check_box("Anti previous angle", "antiprevangle", false)
 local apat = ui.add_slider_int("Anti Previous angle threshold", "apat",0,180,25)
 local left_side = ui.add_key_bind("Left", "left_side", 0, 1)
@@ -74,7 +75,7 @@ local toflick3 = ui.add_check_box("Flick 3", "toflick3", false)
 local upflick = ui.add_check_box("Up flick on tick", "upflick", false)
 local randtick = ui.add_check_box("Flick on random tick", "randtick", false)
 
-local flicktick = ui.add_slider_int("Flick tick", "flicktick", 0, 64, 54)
+local flicktick = ui.add_slider_int("Flick tick", "flicktick", 1, 64, 54)
 
 --visuals stuff (to be cleaned up)
 
@@ -82,7 +83,7 @@ local thirdperson_distance_enable = ui.add_check_box("Thirdperson Distance", "th
 local thirdperson_distance_value = ui.add_slider_int("Value", "thirdperson_distance_value", 0, 250, 100)
 
 local animclantag = ui.add_check_box("Animated clantag", "animclantag", false)
-local tagpick = ui.add_combo_box("Clantag type", "tagpickkey", {"cumgambit on top", "cumgabit typing", "default"}, 2)
+local tagpick = ui.add_combo_box("Clantag type", "tagpickkey", {"cumgambit on top", "cumgabit typing", "default", "180树屋"}, 2)
 local visclantag = ui.add_check_box("Visualize clantag for client", "visclantag", false)
 
 --watermark ui stuff
@@ -93,6 +94,18 @@ local crtc1 = ui.add_color_edit("Color 1", "crtc1", true, color_t.new(0, 153, 51
 local crtc2 = ui.add_color_edit("Color 2", "crtc2", true, color_t.new(51,204,255,255))
 local debuginfo = ui.add_check_box("Show debug numbers", "debuginfo", false)
 
+-- Advanced options stuff
+--antibrute advanced angle threshold
+local abaat = ui.add_slider_int("antibrute max random angle threshold","abaat", 0,180,60)
+
+--Anti previous angles angle threshold
+local apaat = ui.add_slider_int("Anti previous angles max randomm angle threshold","apaat",0,180,15)
+
+local flicktick2 = ui.add_slider_int("Flick 2 tick", "fliicktick2",1,64)
+local flicktick3 = ui.add_slider_int("Flick 3 tick", "flicktick3", 1,64)
+
+--local exampleslider = ui.add_slider_int("lable", "exampleslider", 0, 64, 54)
+--"lable, key, min, max, set"
 
 
 --menu shit
@@ -114,6 +127,7 @@ function tab_selection_function()
     if tabselect:get_value()~=1 then
         raamaster:set_visible(false)
         antibrute:set_visible(false)
+        _180treehouse:set_visible(false)
         chockonsafe:set_visible(false)
         antiprevangle:set_visible(false)
         consss:set_visible(false)
@@ -131,6 +145,7 @@ function tab_selection_function()
     else
         raamaster:set_visible(true)
         antibrute:set_visible(true)
+        _180treehouse:set_visible(true)
         chockonsafe:set_visible(true)
         antiprevangle:set_visible(true)
         consss:set_visible(true)
@@ -172,13 +187,22 @@ function tab_selection_function()
         crtc1:set_visible(true)
         crtc2:set_visible(true)
     end
-
+  
+    if tabselect:get_value()~=3 then
+        abaat:set_visible(false)
+        apaat:set_visible(false)
+        flicktick2:set_visible(false)
+        flicktick3:set_visible(false)
+    else
+        abaat:set_visible(true)
+        apaat:set_visible(true)
+        flicktick2:set_visible(true)
+        flicktick3:set_visible(true)
+    end
 
 end
 
-
 client.register_callback("paint", tab_selection_function)
-
 
 
 --print(64-(globalvars.get_tick_count()%64))
@@ -299,7 +323,7 @@ client.register_callback("create_move", function(cmd)
 
                 if antibrute:get_value() then
                     -- og numbers: -90,90
-                    antibruteangle=math.random(-90,90)
+                    antibruteangle=math.random(-(abaat:get_value()),abaat:get_value())
                 else
                     antibruteangle=0
                 end
@@ -308,7 +332,7 @@ client.register_callback("create_move", function(cmd)
 
                 if antiprevangle:get_value() and yawanglenumb<prev_angle+(apat:get_value()) and yawanglenumb>prev_angle-(apat:get_value()) then
                     -- og numbers: -15,15
-                    yawanglenumb=yawanglenumb+math.random(-30,30)
+                    yawanglenumb=yawanglenumb+math.random(-(apaat:get_value()),apaat:get_value())
                 else
                     prev_angle=yawanglenumb
                 end
@@ -329,7 +353,10 @@ client.register_callback("create_move", function(cmd)
                     end
                 end
 
-
+                --basicall nulls every previous calculationn but its still fun
+                if _180treehouse:get_value() then
+                    yawanglenumb=(math.random(0,32767))
+                end
                 cmd.viewangles.yaw = yawanglenumb
 
             end
@@ -642,6 +669,40 @@ a5={
 
 }
 
+
+a6={
+  "1|", --1
+  "18|", --2
+  "180|", --3
+  "180 |", --4
+  "180 t|", --5
+  "180 tr|", --6
+  "180 tre|", --7
+  "180 tree|", --8
+  "180 tree |", --9
+  "180 tree h|", --10
+  "180 tree ho|", --11
+  "180 tree hou|", --12
+  "180 tree hous|", --13
+  "180 tree house|", --14
+  "180 tree house|", --14
+  "180 tree house|", --14
+  "180 tree hous|",--13
+  "180 tree hou|",--12
+  "180 tree ho|", --11
+  "180 tree h|", --10
+  "180 tree |", --9
+  "180 tree|", --8
+  "180 tre|", --7
+  "180 tr|", --6
+  "180 t|", --5
+  "180 |", --4
+  "180|", --3
+  "18|", --2
+  "1|", --1
+}
+
+
 local taglength=64
 
 function paint()
@@ -661,6 +722,11 @@ function paint()
             if visclantag:get_value() then
                 renderer.text(tostring(a5[a2]), tahoma_bold, vec2_t.new((screen_size.y/2)+390, (1080/2)-75), 15, color_t.new(255, 255, 255, 255))
             end
+        elseif tagpick:get_value()==3 then
+            taglength=29
+            if visclantag:get_value() then
+                renderer.text(tostring(a6[a2]), tahoma_bold, vec2_t.new((screen_size.y/2)+390, (1080/2)-75), 15, color_t.new(255, 255, 255, 255))
+            end
         end
 
         if a1 < globalvars.get_tick_count() then     
@@ -674,8 +740,11 @@ function paint()
                 se.set_clantag(a4[a2])
             elseif tagpick:get_value()==2 then
                 se.set_clantag(a5[a2])
+            elseif tagpick:get_value()==3 then
+                se.set_clantag(a6[a2])
             end
             a1 = globalvars.get_tick_count() + 18
+
         end
 
 
