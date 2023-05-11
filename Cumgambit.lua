@@ -5,15 +5,11 @@ require("keydown")
 require("customrenderer")
 
 
-
 client.notify("Injecting...")
-
-
 
 
 --flick 1, flick 2, flick 3
 
---login system:
 
 local val=60
 local MAX_CHOKE=14
@@ -32,14 +28,17 @@ local ticknumb=32
 local ticknumb2=16
 local ticknumb3=8
 
+local next_lby_update=globalvars.get_tick_count()+21
+
+
 
 --Main Menu shit
 
 local tabselect = ui.add_combo_box("[Cumgambit]>>>Tab", "tabselect",{"Main", "AntiAim", "Misc/Visuals", "Advanced settings"}, 0)
 
 local cumgambitcheckbox = ui.add_check_box(">>> [Cumgambit]", "cumgambitcheckbox", true)
-local version = ui.add_check_box(">>> [Version 1.2]", "version", true)
-local changelog = ui.add_check_box(">>> [Change log]", "changelog", true)
+local version = ui.add_check_box(">>> [Version 1.3]", "version", true)
+--local changelog = ui.add_check_box(">>> [Change log]", "changelog", true)
 local discord = ui.add_check_box(">>> [Discord (to be announced)]", "discord", false)
 
 
@@ -107,6 +106,9 @@ local flicktick3 = ui.add_slider_int("Flick 3 tick", "flicktick3", 1,64)
 --local exampleslider = ui.add_slider_int("lable", "exampleslider", 0, 64, 54)
 --"lable, key, min, max, set"
 
+local caw = ui.add_check_box("Choke on flick (better desync", "caw", false)
+local randnocmd = ui.add_check_box("Random choke cmd", "randnocmd", false)
+
 
 --menu shit
 
@@ -114,13 +116,13 @@ function tab_selection_function()
     if tabselect:get_value()~=0 then
         cumgambitcheckbox:set_visible(false)
         version:set_visible(false)
-        changelog:set_visible(false)
+        --changelog:set_visible(false)
         discord:set_visible(false)
     else
 
         cumgambitcheckbox:set_visible(true)
         version:set_visible(true)
-        changelog:set_visible(true)
+        --changelog:set_visible(true)
         discord:set_visible(true)
     end
 
@@ -193,11 +195,15 @@ function tab_selection_function()
         apaat:set_visible(false)
         flicktick2:set_visible(false)
         flicktick3:set_visible(false)
+        caw:set_visible(false)
+        randnocmd:set_visible(false)
     else
         abaat:set_visible(true)
         apaat:set_visible(true)
         flicktick2:set_visible(true)
         flicktick3:set_visible(true)
+        caw:set_visible(true)
+        randnocmd:set_visible(true)
     end
 
 end
@@ -216,6 +222,15 @@ client.register_callback("create_move", function(cmd)
 
             pitch = 0
             -- backwards
+
+            if randnocmd:get_value() then
+                if math.random(0,1)==1 then
+                    cmd.send_packet=false
+                else
+                    cmd.send_packet=true
+                end
+            end
+
             ui.get_combo_box("antihit_antiaim_pitch"):set_value(1)
             if left_side:is_active() then
                 side=180
@@ -243,7 +258,7 @@ client.register_callback("create_move", function(cmd)
                     if (64-(globalvars.get_tick_count()%64))/ ticknumb == 1 then
                         if randtick:get_value() then
                             local ticknumb=math.random(1,64)
-                            print(ticknumb)
+                            --print(ticknumb)
                         else 
                             local ticknumb=flicktick:get_value()
                         end
@@ -339,15 +354,27 @@ client.register_callback("create_move", function(cmd)
 
                 --cmd.viewangles.yaw = yawanglenumb
                 --lag stuff
+                local currenttick = globalvars.get_tick_count()
+
                 if chockonsafe:get_value() then
                     if side==0 and (modangles<180 and modangles>0) then   
                         ui.get_slider_int("antihit_fakelag_limit"):set_value(consss:get_value())
+                         
+                        cmd.send_packet=true
                     elseif side==180 and (modangles<360 and modangles>180) then
                         ui.get_slider_int("antihit_fakelag_limit"):set_value(consss:get_value())
+                        cmd.send_packet=true
                     else
+                        if math.random(1,2)==1 then
+                            cmd.send_packet=true
+                        else
+                            cmd.send_packet=false
+                        end    
                         if randc:get_value() then
+                            --cmd.send_packet=false
                             ui.get_slider_int("antihit_fakelag_limit"):set_value(math.random(1,16))
                         else
+                            --cmd.send_packet=false
                             ui.get_slider_int("antihit_fakelag_limit"):set_value(consus:get_value())
                         end
                     end
@@ -356,6 +383,18 @@ client.register_callback("create_move", function(cmd)
                 --basicall nulls every previous calculationn but its still fun
                 if _180treehouse:get_value() then
                     yawanglenumb=(math.random(0,32767))
+                end
+
+                if caw:get_value() then
+                    if currenttick>next_lby_update then         
+                        --yawanglenumb=yawanglenumb+120
+                        cmd.send_packet=true
+                    --max 19 ticks? 
+                    --check for clamping? 
+                        next_lby_update=currenttick+math.random(1,4)
+                    else
+                        cmd.send_packet=false
+                    end
                 end
                 cmd.viewangles.yaw = yawanglenumb
 
@@ -366,8 +405,11 @@ client.register_callback("create_move", function(cmd)
             cmd.viewangles.yaw=cmd.viewangles.yaw
         end
 
+
         -- fakelag
+    
         --cmd.send_packet = clientstate.get_choked_commands() >= MAX_CHOKE
+
     end 
 end)
 
@@ -485,7 +527,7 @@ local function watermarkfunc()
         local tick_count = (globalvars.get_tick_count())
         local max_clients = globalvars.get_max_clients()
 
-        watermarktext = ("Cumgambit v1.2 | "..username.." | "..seconds..":"..minutes..":"..hours.." | Ping: "..ping.." | "..tick_count.." | "..max_clients)
+        watermarktext = ("Cumgambit v1.3 | "..username.." | "..seconds..":"..minutes..":"..hours.." | Ping: "..ping.." | "..tick_count.." | "..max_clients)
         wmx = (caltextsize(watermarktext).x+size)
         wmy = (caltextsize(watermarktext).y+size)
 
@@ -755,7 +797,6 @@ function paint()
 end
 
 client.register_callback("paint", paint)
-
 
 
 --master looser resolver coming soon
